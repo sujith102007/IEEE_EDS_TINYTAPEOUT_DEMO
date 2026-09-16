@@ -1,49 +1,35 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-/* This testbench just instantiates the module and makes some convenient wires
-   that can be driven / tested by the cocotb test.py.
-*/
-module tb ();
+module tt_um_example (
+    input  wire [7:0] ui_in,
+    output wire [7:0] uo_out,
+    input  wire [7:0] uio_in,
+    output wire [7:0] uio_out,
+    output wire [7:0] uio_oe,
+    input  wire ena,
+    input  wire clk,
+    input  wire rst_n
+);
 
-  // Dump the signals to a FST file. You can view it with gtkwave or surfer.
-  initial begin
-    $dumpfile("tb.fst");
-    $dumpvars(0, tb);
-    #1;
-  end
+    // Half Adder
+    // ui_in[0] = A
+    // ui_in[1] = B
+    // uo_out[0] = SUM
+    // uo_out[1] = CARRY
 
-  // Wire up the inputs and outputs:
-  reg clk;
-  reg rst_n;
-  reg ena;
-  reg [7:0] ui_in;
-  reg [7:0] uio_in;
-  wire [7:0] uo_out;
-  wire [7:0] uio_out;
-  wire [7:0] uio_oe;
-`ifdef GL_TEST
-  wire VPWR = 1'b1;
-  wire VGND = 1'b0;
-`endif
+    assign uo_out[0] = ui_in[0] ^ ui_in[1];
+    assign uo_out[1] = ui_in[0] & ui_in[1];
 
-  // Replace tt_um_example with your module name:
-  tt_um_example user_project (
+    // Unused output bits
+    assign uo_out[7:2] = 6'b0;
 
-      // Include power ports for the Gate Level test:
-`ifdef GL_TEST
-      .VPWR(VPWR),
-      .VGND(VGND),
-`endif
+    // Bidirectional pins unused
+    assign uio_out = 8'b0;
+    assign uio_oe  = 8'b0;
 
-      .ui_in  (ui_in),    // Dedicated inputs
-      .uo_out (uo_out),   // Dedicated outputs
-      .uio_in (uio_in),   // IOs: Input path
-      .uio_out(uio_out),  // IOs: Output path
-      .uio_oe (uio_oe),   // IOs: Enable path (active high: 0=input, 1=output)
-      .ena    (ena),      // enable - goes high when design is selected
-      .clk    (clk),      // clock
-      .rst_n  (rst_n)     // not reset
-  );
+    // Unused inputs
+    wire _unused;
+    assign _unused = ena & clk & rst_n & (&uio_in);
 
 endmodule
