@@ -19,13 +19,13 @@ module tt_um_example (
     // uo_out[0] = SUM
     // uo_out[1] = CARRY
 
-    assign uo_out[0] = ui_in[0] ^ ui_in[1];
-    assign uo_out[1] = ui_in[0] & ui_in[1];
+    assign uo_out[0] = ui_in[0] ^ ui_in[1];  // SUM
+    assign uo_out[1] = ui_in[0] & ui_in[1];  // CARRY
 
     // Unused output pins
     assign uo_out[7:2] = 6'b000000;
 
-    // Bidirectional pins are unused
+    // Bidirectional pins unused
     assign uio_out = 8'b00000000;
     assign uio_oe  = 8'b00000000;
 
@@ -34,3 +34,5 @@ module tt_um_example (
     assign _unused = ena & clk & rst_n & (|uio_in);
 
 endmodule
+
+`default_nettype wire
