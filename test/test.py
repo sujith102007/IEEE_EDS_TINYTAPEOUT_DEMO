@@ -10,7 +10,7 @@ from cocotb.triggers import ClockCycles
 async def test_project(dut):
     dut._log.info("Start")
 
-    # Start clock
+    # Set the clock period to 10 us (100 KHz)
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
 
@@ -20,38 +20,27 @@ async def test_project(dut):
     dut.ui_in.value = 0
     dut.uio_in.value = 0
     dut.rst_n.value = 0
-
-    await ClockCycles(dut.clk, 2)
+    await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    dut._log.info("Testing Half Adder")
+    dut._log.info("Testing Half Adder Logic")
 
-    # Test 00: A=0, B=0
-    dut.ui_in.value = 0b00000000
+    # Test Case 1: A=0, B=0 -> Sum=0, Carry=0 (uo_out = 00)
+    dut.ui_in.value = 0b00
     await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0b00, f"Failed for 0+0: expected 0, got {dut.uo_out.value}"
 
-    # SUM = 0, CARRY = 0
-    assert dut.uo_out.value & 0x03 == 0b00
-
-    # Test 01: A=0, B=1
-    dut.ui_in.value = 0b00000001
+    # Test Case 2: A=1, B=0 -> Sum=1, Carry=0 (uo_out = 01)
+    dut.ui_in.value = 0b01
     await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0b01, f"Failed for 1+0: expected 1, got {dut.uo_out.value}"
 
-    # SUM = 1, CARRY = 0
-    assert dut.uo_out.value & 0x03 == 0b01
-
-    # Test 10: A=1, B=0
-    dut.ui_in.value = 0b00000010
+    # Test Case 3: A=0, B=1 -> Sum=1, Carry=0 (uo_out = 01)
+    dut.ui_in.value = 0b10
     await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0b01, f"Failed for 0+1: expected 1, got {dut.uo_out.value}"
 
-    # SUM = 1, CARRY = 0
-    assert dut.uo_out.value & 0x03 == 0b01
-
-    # Test 11: A=1, B=1
-    dut.ui_in.value = 0b00000011
+    # Test Case 4: A=1, B=1 -> Sum=0, Carry=1 (uo_out = 10 -> Decimal 2)
+    dut.ui_in.value = 0b11
     await ClockCycles(dut.clk, 1)
-
-    # SUM = 0, CARRY = 1
-    assert dut.uo_out.value & 0x03 == 0b10
-
-    dut._log.info("Half Adder test completed successfully!")
+    assert dut.uo_out.value == 0b10, f"Failed for 1+1: expected 2, got {dut.uo_out.value}"
