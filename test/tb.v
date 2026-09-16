@@ -1,35 +1,58 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-module tt_um_example (
-    input  wire [7:0] ui_in,
-    output wire [7:0] uo_out,
-    input  wire [7:0] uio_in,
-    output wire [7:0] uio_out,
-    output wire [7:0] uio_oe,
-    input  wire ena,
-    input  wire clk,
-    input  wire rst_n
-);
+/*
+ * This testbench just instantiates the module and makes some convenient wires
+ * that can be driven / tested by the cocotb test.py.
+ */
 
-    // Half Adder
-    // ui_in[0] = A
-    // ui_in[1] = B
-    // uo_out[0] = SUM
-    // uo_out[1] = CARRY
+module tb ();
 
-    assign uo_out[0] = ui_in[0] ^ ui_in[1];
-    assign uo_out[1] = ui_in[0] & ui_in[1];
+    // Dump the signals to a FST file.
+    // You can view it with gtkwave or surfer.
+    initial begin
+        $dumpfile("tb.fst");
+        $dumpvars(0, tb);
+        #1;
+    end
 
-    // Unused output bits
-    assign uo_out[7:2] = 6'b0;
+    // Wire up the inputs and outputs
+    reg clk;
+    reg rst_n;
+    reg ena;
 
-    // Bidirectional pins unused
-    assign uio_out = 8'b0;
-    assign uio_oe  = 8'b0;
+    reg [7:0] ui_in;
+    reg [7:0] uio_in;
 
-    // Unused inputs
-    wire _unused;
-    assign _unused = ena & clk & rst_n & (&uio_in);
+    wire [7:0] uo_out;
+    wire [7:0] uio_out;
+    wire [7:0] uio_oe;
+
+`ifdef GL_TEST
+    wire VPWR = 1'b1;
+    wire VGND = 1'b0;
+`endif
+
+    // Replace tt_um_example with your module name
+    tt_um_example user_project (
+
+        // Include power ports for the Gate Level test
+`ifdef GL_TEST
+        .VPWR(VPWR),
+        .VGND(VGND),
+`endif
+
+        .ui_in  (ui_in),      // Dedicated inputs
+        .uo_out (uo_out),     // Dedicated outputs
+
+        .uio_in (uio_in),     // IOs: Input path
+        .uio_out(uio_out),    // IOs: Output path
+        .uio_oe (uio_oe),     // IOs: Enable path
+
+        .ena    (ena),        // Enable - goes high when design is selected
+        .clk    (clk),        // Clock
+        .rst_n  (rst_n)       // Active-low reset
+
+    );
 
 endmodule
